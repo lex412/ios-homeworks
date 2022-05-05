@@ -58,22 +58,18 @@ class FeedViewController: UIViewController {
             self.navigationController?.pushViewController(postViewController, animated: true)
             postViewController.titlePost = post.title
      }
-*/
 
 
+     */
         
     @objc
         func buttonTapped(sender: UIButton) {
-            let post = Post(author: sender.currentTitle ?? "New post",
-                            description: "",
-                            image: "",
-                            likes: 0,
-                            views: 0)
+            
             let postViewController = PostViewController()
-            postViewController.setup(with: post)
+      
             navigationController?.pushViewController(postViewController, animated: true)
         }
 
-    
+     
 
 }

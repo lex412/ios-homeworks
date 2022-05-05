@@ -2,101 +2,133 @@
 //  PhotosTableViewCell.swift
 //  Navigation
 //
-//  Created by Lex 412 on 4/16/22.
+//  Created by Lex 412 on 5/5/22.
 //
 
 import UIKit
 
 class PhotosTableViewCell: UITableViewCell {
-
-    let photosCount = 4
-    private let padding: CGFloat = 12
-    private let interPhotoSpacing: CGFloat = 8
-
-    lazy private var titleLabel: UILabel = {
+    
+    private lazy var backView: UIView = {
+        let view = UIView()
+        view.clipsToBounds = true
+        view.toAutoLayout()
+        return view
+    }()
+    
+    private lazy var collectionLabel: UILabel = {
         let label = UILabel()
-
-        label.text = "Photos"
+        label.font = UIFont.systemFont(ofSize: 24.0, weight: .bold)
         label.textColor = .black
-        label.font = .systemFont(ofSize: 24, weight: .bold)
-
+        label.text = "Photos"
+        label.toAutoLayout()
         return label
     }()
-
-    lazy private  var arrowLabel: UILabel = {
-        let label = UILabel()
-
-        label.text = "→"
-        label.font = .systemFont(ofSize: 24)
-        label.textAlignment = .right
-
-        return label
+    
+    private lazy var arrowView: UIImageView = {
+        let arrow = UIImage(systemName: "arrow.right")?.withTintColor(.black, renderingMode: .alwaysOriginal)
+        let arrowView = UIImageView()
+        arrowView.image = arrow
+        arrowView.clipsToBounds = true
+        arrowView.toAutoLayout()
+        return arrowView
+    }()
+    
+    private lazy var photosStackView: UIStackView = {
+        let stackView = UIStackView()
+        stackView.axis = .horizontal
+        stackView.distribution = .fillEqually
+        stackView.spacing = 8
+        stackView.toAutoLayout()
+        return stackView
+    }()
+    
+    private lazy var firstImageView: UIImageView = {
+        let image = UIImage(named: "photo-1")
+        let imageCollectionView = UIImageView()
+        imageCollectionView.image = image
+        imageCollectionView.clipsToBounds = true
+        imageCollectionView.contentMode = .scaleAspectFill
+        imageCollectionView.layer.cornerRadius = 6
+        imageCollectionView.toAutoLayout()
+        return imageCollectionView
     }()
 
-    lazy private  var photoStack: UIStackView = {
-        let stack = UIStackView()
-
-        stack.axis = .horizontal
-        stack.distribution = .fillEqually
-        stack.alignment = .fill
-        stack.spacing = interPhotoSpacing
-
-        (0..<photosCount).forEach { _ in
-            let imageView = UIImageView()
-
-            imageView.layer.cornerRadius = 4
-            imageView.clipsToBounds = true
-            imageView.contentMode = .scaleAspectFill
- 
-            stack.addArrangedSubview(imageView)
-        }
-
-        return stack
+    private lazy var secondImageView: UIImageView = {
+        let image = UIImage(named: "photo-2")
+        let imageCollectionView = UIImageView()
+        imageCollectionView.image = image
+        imageCollectionView.clipsToBounds = true
+        imageCollectionView.contentMode = .scaleAspectFill
+        imageCollectionView.layer.cornerRadius = 6
+        imageCollectionView.toAutoLayout()
+        return imageCollectionView
     }()
 
+    private lazy var thirdImageView: UIImageView = {
+        let image = UIImage(named: "photo-3")
+        let imageCollectionView = UIImageView()
+        imageCollectionView.image = image
+        imageCollectionView.clipsToBounds = true
+        imageCollectionView.contentMode = .scaleAspectFill
+        imageCollectionView.layer.cornerRadius = 6
+        imageCollectionView.toAutoLayout()
+        imageCollectionView.toAutoLayout()
+        return imageCollectionView
+    }()
+
+    private lazy var fourImageView: UIImageView = {
+        let image = UIImage(named: "photo-4")
+        let imageCollectionView = UIImageView()
+        imageCollectionView.image = image
+        imageCollectionView.clipsToBounds = true
+        imageCollectionView.contentMode = .scaleAspectFill
+        imageCollectionView.layer.cornerRadius = 6
+        imageCollectionView.toAutoLayout()
+        return imageCollectionView
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-
-        contentView.addSubviewsToAutoLayout(titleLabel,
-                                            arrowLabel,
-                                            photoStack)
-        setupLayouts()
+        self.setupView()
     }
-
+    
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
+        fatalError("init(coder:) has not been implemented")
     }
-
-    private func setupLayouts() {
-        //photoStack.height = (1 / 4) * (photoStack.width - 3 * 8)
-        //180 = 0.25 * 744 - 0.25 * 3 * 8
-        let photosCountFloat = CGFloat(photosCount)
-        let multiplier = 1.0 / photosCountFloat
-        let constant = multiplier * (photosCountFloat - 1.0) * interPhotoSpacing
+    
+    private func setupView() {
+        
+        self.contentView.addSubview(self.backView)
+        self.backView.addSubview(self.collectionLabel)
+        self.backView.addSubview(self.arrowView)
+        self.backView.addSubview(self.photosStackView)
+        self.photosStackView.addArrangedSubview(firstImageView)
+        self.photosStackView.addArrangedSubview(secondImageView)
+        self.photosStackView.addArrangedSubview(thirdImageView)
+        self.photosStackView.addArrangedSubview(fourImageView)
 
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: contentView.topAnchor, constant: padding),
-            titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: padding),
 
-            arrowLabel.centerYAnchor.constraint(equalTo: titleLabel.centerYAnchor),
-            arrowLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -padding),
-            arrowLabel.heightAnchor.constraint(equalTo: titleLabel.heightAnchor),
-            arrowLabel.widthAnchor.constraint(equalTo: arrowLabel.heightAnchor),
+                backView.topAnchor.constraint(equalTo: self.contentView.topAnchor),
+                backView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor),
+                backView.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor),
+                backView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor),
 
-            photoStack.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: padding),
-            photoStack.leadingAnchor.constraint(equalTo: titleLabel.leadingAnchor),
-            photoStack.trailingAnchor.constraint(equalTo: arrowLabel.trailingAnchor),
-            photoStack.heightAnchor.constraint(equalTo: photoStack.widthAnchor, multiplier: multiplier, constant: -constant),
+                collectionLabel.topAnchor.constraint(equalTo: self.backView.topAnchor, constant: 12.0),
+                collectionLabel.leadingAnchor.constraint(equalTo: self.backView.leadingAnchor, constant: 12.0),
 
-            contentView.bottomAnchor.constraint(equalTo: photoStack.bottomAnchor, constant: padding)
+                arrowView.trailingAnchor.constraint(equalTo: self.backView.trailingAnchor, constant: -12.0),
+                arrowView.centerYAnchor.constraint(equalTo: self.collectionLabel.centerYAnchor),
+                arrowView.heightAnchor.constraint(equalTo: self.collectionLabel.heightAnchor),
+                arrowView.widthAnchor.constraint(equalTo: self.arrowView.heightAnchor, multiplier: 1.0),
+
+                photosStackView.topAnchor.constraint(equalTo: self.collectionLabel.bottomAnchor, constant: 12.0),
+                photosStackView.bottomAnchor.constraint(equalTo: self.backView.bottomAnchor, constant: -12.0),
+                photosStackView.leadingAnchor.constraint(equalTo: self.backView.leadingAnchor, constant: 12.0),
+                photosStackView.trailingAnchor.constraint(equalTo: self.backView.trailingAnchor, constant: -12.0),
+
+                firstImageView.heightAnchor.constraint(equalTo: self.firstImageView.widthAnchor, multiplier: 1.0)
         ])
-    }
-
-    func setup(with photos: [UIImage]) {
-        (0..<min(photos.count, photoStack.arrangedSubviews.count))
-            .forEach { index in
-                let imageView = photoStack.arrangedSubviews[index] as! UIImageView
-                imageView.image = photos[index]
-        }
     }
 }

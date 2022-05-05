@@ -1,47 +1,36 @@
 //
-//  File.swift
+//  PhotosCollectionViewCell.swift
 //  Navigation
 //
-//  Created by Lex 412 on 4/16/22.
+//  Created by Lex 412 on 5/5/22.
 //
 
 import UIKit
 
-final class PhotosCollectionViewCell: UICollectionViewCell {
+class PhotosCollectionViewCell: UICollectionViewCell {
 
-    lazy private  var imageView: UIImageView = {
-        let imageView = UIImageView()
-
-        imageView.clipsToBounds = true
-        imageView.contentMode = .scaleAspectFill
-
-        return imageView
+    lazy var photoGalleryImages: UIImageView = {
+        let photoGalleryImages = UIImageView()
+        photoGalleryImages.clipsToBounds = true
+        photoGalleryImages.toAutoLayout()
+        return photoGalleryImages
     }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        self.contentView.addSubview(self.photoGalleryImages)
 
-        contentView.addSubviewsToAutoLayout(imageView)
-
-        setupLayouts()
-    }
-
-    required init?(coder: NSCoder) {
-        super.init(coder: coder)
-    }
-
-    private func setupLayouts() {
         NSLayoutConstraint.activate([
-            imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            imageView.heightAnchor.constraint(equalTo: contentView.widthAnchor),
-
-            contentView.bottomAnchor.constraint(equalTo: imageView.bottomAnchor)
+            
+            photoGalleryImages.centerYAnchor.constraint(equalTo: self.contentView.centerYAnchor),
+            photoGalleryImages.centerXAnchor.constraint(equalTo: self.contentView.centerXAnchor),
+            photoGalleryImages.heightAnchor.constraint(equalTo: self.contentView.heightAnchor),
+            photoGalleryImages.widthAnchor.constraint(equalTo: self.contentView.widthAnchor),
         ])
     }
-
-    func setup(with image: UIImage) {
-        imageView.image = image
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }
+

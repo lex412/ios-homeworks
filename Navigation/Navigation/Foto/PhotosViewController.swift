@@ -2,119 +2,124 @@
 //  PhotosViewController.swift
 //  Navigation
 //
-//  Created by Lex 412 on 4/16/22.
+//  Created by Lex 412 on 5/5/22.
 //
-
 
 import UIKit
 
-final class PhotosViewController: UIViewController {
-
-    private let photos: [UIImage] = Photos.allPhotos
-
+class PhotosViewController: UIViewController {
+    
+    private enum Constants {
+        static let itemCount: CGFloat = 3
+    }
+    
+    private lazy var layout: UICollectionViewFlowLayout = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.minimumLineSpacing = 8
+        layout.minimumInteritemSpacing = 8
+        return layout
+    }()
+    
     private lazy var collectionView: UICollectionView = {
-        let collectionViewLayout = UICollectionViewFlowLayout()
-//        Для нашей задачи можно использовать эти свойства, либо методы делегата UICollectionViewDelegateFlowLayout
-//        collectionViewLayout.sectionInset = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
-//        collectionViewLayout.minimumInteritemSpacing = 8
-//        collectionViewLayout.minimumLineSpacing = 8
-
-        let collectionView = UICollectionView(frame: .zero,
-                                              collectionViewLayout: collectionViewLayout)
-
-        collectionView.register(PhotosCollectionViewCell.self,
-                                forCellWithReuseIdentifier: PhotosCollectionViewCell.identifier)
-
-        collectionView.dataSource = self
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: self.layout)
         collectionView.delegate = self
-        collectionView.backgroundColor = .white
-
+        collectionView.dataSource = self
+        collectionView.register(PhotosCollectionViewCell.self, forCellWithReuseIdentifier: "PhotosCollectionViewCell")
+        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "DefaultCollectionCell")
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
         return collectionView
     }()
 
+    let detailPhotoView = DetailPhotoView()
+
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        title = "Photo Gallery"
-
-        view.backgroundColor = .systemGray6
-
-        view.addSubviewsToAutoLayout(collectionView)
-
-        setupLayout()
+        self.setupView()
+        self.title = "Photo Gallery"
     }
 
     override func viewWillAppear(_ animated: Bool) {
-        navigationController?.navigationBar.isHidden = false
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
+    
+    private func setupView() {
+        self.view.backgroundColor = .white
+        self.detailPhotoView.toAutoLayout()
+        self.view.addSubviews(self.collectionView, self.detailPhotoView)
 
-    override func viewWillDisappear(_ animated: Bool) {
-        navigationController?.navigationBar.isHidden = true
-    }
-
-    func setupLayout() {
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            self.collectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
+            self.collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            self.collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            self.collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            
+            self.detailPhotoView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+            self.detailPhotoView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
+            self.detailPhotoView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            self.detailPhotoView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
         ])
     }
- }
-
-
-extension PhotosViewController: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        photos.count
+    
+    private func itemSize(for width: CGFloat, with spacing: CGFloat) -> CGSize {
+        let neededWidth = width - 4 * spacing
+        let itemWidth = floor(neededWidth / Constants.itemCount)
+        return CGSize(width: itemWidth, height: itemWidth)
     }
+}
 
+extension PhotosViewController: UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return collectionDataSource.count
+    }
+    
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotosCollectionViewCell.identifier,
-                                                      for: indexPath)
-            as! PhotosCollectionViewCell
-
-        cell.setup(with: photos[indexPath.row])
-
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotosCollectionViewCell", for: indexPath) as? PhotosCollectionViewCell else {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "DefaultCollectionCell", for: indexPath)
+            cell.backgroundColor = .black
+            return cell
+        }
+        cell.backgroundColor = .systemGray6
+        let photos = collectionDataSource[indexPath.row]
+        cell.photoGalleryImages.image = UIImage(named: photos.image)
+        cell.photoGalleryImages.contentMode = .scaleAspectFill
         return cell
     }
-}
-
-
-extension PhotosViewController: UICollectionViewDelegateFlowLayout {
-
-    private var itemsPerRow: CGFloat { 3 }
-    private var spacing: CGFloat { 8 }
-
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        sizeForItemAt indexPath: IndexPath
-    ) -> CGSize {
-        let paddingSpace = spacing * (itemsPerRow + 1)
-        let availableWidth = view.safeAreaLayoutGuide.layoutFrame.width - paddingSpace
-        let widthPerItem = availableWidth / itemsPerRow
-
-        return CGSize(width: widthPerItem, height: widthPerItem)
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt: IndexPath) -> CGSize {
+        let spacing = ( collectionView.collectionViewLayout as? UICollectionViewFlowLayout)?.minimumInteritemSpacing
+        return self.itemSize(for: collectionView.frame.width, with: spacing ?? 0)
     }
 
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        insetForSectionAt section: Int
-    ) -> UIEdgeInsets {
-        UIEdgeInsets(top: spacing, left: spacing, bottom: spacing, right: spacing)
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        UIView.animate(withDuration: 0.5) {
+            let image = collectionDataSource[indexPath.item].image
+            self.detailPhotoView.setDetailImage(image: image)
+            self.detailPhotoView.alpha = 1
+            self.title = ""
+            self.navigationController?.navigationBar.backgroundColor = .white
+        }
     }
-
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumLineSpacingForSectionAt section: Int
-    ) -> CGFloat {
-        spacing
+    
+    func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
+        
+        let cell = collectionView.cellForItem(at: indexPath)
+        self.collectionView.addSubview(cell!)
+        return true
     }
-
-    func collectionView(_ collectionView: UICollectionView,
-                        layout collectionViewLayout: UICollectionViewLayout,
-                        minimumInteritemSpacingForSectionAt section: Int)
-    -> CGFloat {
-        spacing
+    
+    func collectionView(_ collectionView: UICollectionView, shouldDeselectItemAt indexPath: IndexPath) -> Bool {
+        
+        let cell = collectionView.cellForItem(at: indexPath)
+        if (cell?.superview != nil) {
+            cell?.removeFromSuperview()
+        }
+        return true
     }
 }
-

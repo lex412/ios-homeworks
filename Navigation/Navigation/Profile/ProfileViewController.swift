@@ -7,228 +7,144 @@
 
 import UIKit
 
-final class ProfileViewController: UIViewController {
+class ProfileViewController: UIViewController, ChangeLikesDelegate, ChangeViewsDelegate {
 
-private let posts: [Post] = Post.demoPosts
-
-    private var profile = Profile(name: "Test",
-                                  image: (UIImage(named: "ProfileImage") ?? UIImage(systemName: "person.circle.fill"))!,
-                                  status: "Status")
-    
-    private weak var coverView: UIView?
-        private weak var closeAvatarPresentationButton: UIButton?
-        private var isAvatarPresenting: Bool = false {
-            didSet {
-                tableView.isUserInteractionEnabled = !isAvatarPresenting
-            }
-        }
-
+    private var dataSource: [Post] = []
+    private var likesCount = 0
 
     private lazy var tableView: UITableView = {
         let tableView = UITableView(frame: .zero, style: .grouped)
-
-        tableView.register(PostTableViewCell.self,
-                           forCellReuseIdentifier: PostTableViewCell.identifier)
-
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = 44
         tableView.dataSource = self
         tableView.delegate = self
-
+        tableView.register(PhotosTableViewCell.self, forCellReuseIdentifier: "PhotosTableViewCell")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "DefaultCell")
+        tableView.register(PostTableViewCell.self, forCellReuseIdentifier: "ArticleCell")
+        tableView.backgroundColor = .systemBackground
+        tableView.toAutoLayout()
         return tableView
     }()
 
-    lazy private var profileHeaderView: ProfileHeaderView = {
-
-        let profileHeaderView = ProfileHeaderView()
-        profileHeaderView.setup(with: profile)
-
-        profileHeaderView.setStatusButton.addTarget(self,
-                                                    action:#selector(setStatusButtonClicked),
-                                                    for: .touchUpInside)
-        let tapRecognizer = UITapGestureRecognizer(target: self,
-                                                           action: #selector(showAvatarPresentation))
-
-                profileHeaderView.avatarImageView.addGestureRecognizer(tapRecognizer)
-                profileHeaderView.avatarImageView.isUserInteractionEnabled = true
-
-
-
-        return profileHeaderView
-    }()
-    lazy private var photosTableViewCell = PhotosTableViewCell()
-
-        override func viewDidLoad() {
-            super.viewDidLoad()
-
-            view.backgroundColor = .systemGray6
-
-            view.addSubviewsToAutoLayout(tableView)
-
-            setupLayout()
-        }
-
-        override func viewWillAppear(_ animated: Bool) {
-            let photos = Photos.randomPhotos(ofCount: photosTableViewCell.photosCount)
-            
-            photosTableViewCell.setup(with: photos)
-        }
-
-    private func setupLayout() {
-           NSLayoutConstraint.activate([
-               tableView.topAnchor.constraint(equalTo: view.topAnchor),
-               tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-               tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-               tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-           ])
-       }
-
-        @objc
-        func setStatusButtonClicked() {
-            if let text = profileHeaderView.statusTextField.text {
-                profile.status = text
-                profileHeaderView.setup(with: profile)
-            }
-         }
-    
-    
-    @objc
-    private func showAvatarPresentation() {
-        isAvatarPresenting = true
-
-        createCover()
-
-        let avatar = profileHeaderView.avatarImageView
-
-        profileHeaderView.bringSubviewToFront(avatar)
-
-        UIView.animate(withDuration: 0.5) { [self] in
-            coverView?.alpha = 0.5
-            avatar.layer.cornerRadius = 0
-            moveAndScaleAvatarToCenterWith()
-        } completion: { _ in
-            UIView.animate(withDuration: 0.3) { [self] in
-                closeAvatarPresentationButton?.alpha = 1
-            }
-        }
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        self.setupView()
     }
 
-    override func viewSafeAreaInsetsDidChange() {
-        if isAvatarPresenting {
-            moveAndScaleAvatarToCenterWith()
-        }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setStatusBarColor()
+        navigationController?.setNavigationBarHidden(true, animated: animated)
     }
 
-    private func moveAndScaleAvatarToCenterWith() {
-        let layoutFrame = view.safeAreaLayoutGuide.layoutFrame
-        let avatar = profileHeaderView.avatarImageView
-        let scale = min(layoutFrame.size.width, layoutFrame.size.height) / avatar.bounds.width
+    func setStatusBarColor() {
 
-        let scaleTransform = CGAffineTransform(scaleX: scale, y: scale)
-        let translateTransform = CGAffineTransform(translationX: layoutFrame.midX - avatar.center.x,
-                                                   y: layoutFrame.midY - avatar.center.y)
+        let statusbarView = UIView()
+        statusbarView.backgroundColor = UIColor.systemGray6
+        view.addSubview(statusbarView)
 
-        avatar.transform = scaleTransform.concatenating(translateTransform)
+        statusbarView.toAutoLayout()
+        statusbarView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 1.0).isActive = true
+        statusbarView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
+        statusbarView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
     }
 
-    private func createCover() {
-        let cover = UIView()
-        cover.backgroundColor = .white
-        cover.alpha = 0.0
+    private func setupView() {
 
-        let button = UIButton()
-        button.tintColor = .black
-        button.alpha = 0.0
-
-        let configuration = UIImage.SymbolConfiguration(pointSize: 24)
-        let image = UIImage(systemName: "xmark", withConfiguration: configuration)
-        button.setImage(image, for: .normal)
-        button.addTarget(self,
-                         action: #selector(closeAvatarPresentation),
-                         for: .touchUpInside)
-
-        view.addSubviewsToAutoLayout(button)
-        profileHeaderView.addSubviewsToAutoLayout(cover)
+        self.view.addSubview(self.tableView)
+        self.view.backgroundColor = .systemGray6
+        self.addDataSource()
 
         NSLayoutConstraint.activate([
-            cover.topAnchor.constraint(equalTo: view.topAnchor),
-            cover.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            cover.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            cover.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            button.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: AutoL.padding),
-             button.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -AutoL.padding)
+            
+            tableView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
         ])
-
-        self.coverView = cover
-        self.closeAvatarPresentationButton = button
+    }
+    private func addDataSource() {
+        self.dataSource.append(post1)
+        self.dataSource.append(post2)
+        self.dataSource.append(post3)
+        self.dataSource.append(post4)
     }
 
-    @objc
-    private func closeAvatarPresentation() {
-        let duraration = 0.8
-        let avatar = profileHeaderView.avatarImageView
+    func viewsChanged(at indexPath: IndexPath) {
+        dataSource[indexPath.row - 1].views += 1
+        self.tableView.reloadData()
+    }
 
-        UIView.animateKeyframes(withDuration: duraration, delay: 0.0,
-                                animations: {
-            UIView.addKeyframe(withRelativeStartTime: 0.0,
-                               relativeDuration: 0.3 / duraration) {
+    func likesChanged() {
+        likesCount += 1
+        self.tableView.reloadData()
+    }
 
-                self.closeAvatarPresentationButton?.alpha = 0.0
-            }
-
-            UIView.addKeyframe(withRelativeStartTime: 0.3 / duraration,
-                               relativeDuration: 0.5 / duraration ) {
-                self.coverView?.alpha = 0.0
-                avatar.transform = .identity
-                avatar.layer.cornerRadius = avatar.bounds.width / 2
-            }
-        }, completion: { [self]_ in
-
-            coverView?.removeFromSuperview()
-            closeAvatarPresentationButton?.removeFromSuperview()
-            isAvatarPresenting = false
-        }
-        )
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
     }
 }
-    
 
-    
-    extension ProfileViewController: UITableViewDataSource {
-        func numberOfSections(in tableView: UITableView) -> Int {
-            2
-        }
+extension ProfileViewController: UITableViewDataSource, UITableViewDelegate {
 
-        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-            section == 0 ? 1 : posts.count
-        }
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        var headerView = UIView()
+        if section == 0 {
+            headerView = ProfileHeaderView()}
+        return headerView
+    }
 
-        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-            if indexPath.section == 0 {
-                return photosTableViewCell
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return  250
+    }
+
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return self.dataSource.count + 1
+    }
+
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+
+        if indexPath.row == 0 {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "PhotosTableViewCell", for: indexPath)
+            return cell
+        } else {
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: "ArticleCell", for: indexPath) as? PostTableViewCell else {
+                let cell = tableView.dequeueReusableCell(withIdentifier: "DefaultCell", for: indexPath)
+                return cell
             }
-
-            let cell = tableView.dequeueReusableCell(withIdentifier: PostTableViewCell.identifier,
-                                                     for: indexPath)
-                as! PostTableViewCell
-
-            cell.setup(with: posts[indexPath.row])
-
+            cell.likesDelegate = self
+            let article = self.dataSource[indexPath.row - 1]
+            let likes = article.likes + likesCount
+            self.dataSource[indexPath.row - 1].likes = likes
+            let viewModel = PostTableViewCell.ViewModel(author: article.author,
+                                                        description: article.description,
+                                                        image: article.image,
+                                                        likes: likes,
+                                                        views: article.views,
+                                                        isLiked: article.isLiked,
+                                                        isViewed: article.isViewed)
+            cell.setup(with: viewModel)
+            likesCount = 0
             return cell
         }
-
-        func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-            section == 0 ? profileHeaderView : nil
-        }
     }
 
-
-    extension ProfileViewController: UITableViewDelegate {
-        func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-            if indexPath == IndexPath(row: 0, section: 0) {
-                tableView.deselectRow(at: indexPath, animated: true)
-
-                let photosViewController = PhotosViewController()
-                navigationController?.pushViewController(photosViewController, animated: true)
+    func tableView( _ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.row == 0 {
+            self.navigationController?.pushViewController(PhotosViewController(), animated: true)
+        } else {
+            let presentViewController = CellPresentViewController()
+            presentViewController.author = dataSource[indexPath.row - 1].author
+            presentViewController.descriptionText = dataSource[indexPath.row - 1].description
+            presentViewController.image = dataSource[indexPath.row - 1].image
+            presentViewController.likes = dataSource[indexPath.row - 1].likes
+            presentViewController.views = dataSource[indexPath.row - 1].views
+            presentViewController.isViewed = dataSource[indexPath.row - 1].isViewed
+            if !dataSource[indexPath.row - 1].isViewed {
+                viewsChanged(at: indexPath)
             }
+            dataSource[indexPath.row - 1].isViewed = true
+            self.navigationController?.present(presentViewController, animated: true)
         }
     }
+}
