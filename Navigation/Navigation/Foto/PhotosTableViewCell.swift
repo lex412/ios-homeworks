@@ -73,7 +73,6 @@ class PhotosTableViewCell: UITableViewCell {
         imageCollectionView.contentMode = .scaleAspectFill
         imageCollectionView.layer.cornerRadius = 6
         imageCollectionView.toAutoLayout()
-        imageCollectionView.toAutoLayout()
         return imageCollectionView
     }()
 

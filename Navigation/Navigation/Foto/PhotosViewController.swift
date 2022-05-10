@@ -32,17 +32,22 @@ class PhotosViewController: UIViewController {
     }()
 
     let detailPhotoView = DetailPhotoView()
+    
 
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.setupView()
         self.title = "Photo Gallery"
+        
     }
 
     override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        navigationController?.setNavigationBarHidden(false, animated: animated)
+       super.viewWillAppear(animated)
+       navigationController?.setNavigationBarHidden(false, animated: animated)
+        
     }
+    
     
     private func setupView() {
         self.view.backgroundColor = .white
@@ -54,10 +59,11 @@ class PhotosViewController: UIViewController {
             self.collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
             self.collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
             self.collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            
+    
             self.detailPhotoView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
             self.detailPhotoView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
             self.detailPhotoView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            
             self.detailPhotoView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
         ])
     }
@@ -104,6 +110,7 @@ extension PhotosViewController: UICollectionViewDataSource, UICollectionViewDele
             self.detailPhotoView.alpha = 1
             self.title = ""
             self.navigationController?.navigationBar.backgroundColor = .white
+            self.hideNavigationBar()
         }
     }
     
@@ -111,6 +118,7 @@ extension PhotosViewController: UICollectionViewDataSource, UICollectionViewDele
         
         let cell = collectionView.cellForItem(at: indexPath)
         self.collectionView.addSubview(cell!)
+       
         return true
     }
     
@@ -122,4 +130,6 @@ extension PhotosViewController: UICollectionViewDataSource, UICollectionViewDele
         }
         return true
     }
+    
+    
 }

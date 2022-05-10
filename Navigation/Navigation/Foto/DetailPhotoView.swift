@@ -7,12 +7,15 @@
 
 import UIKit
 
-class DetailPhotoView: UIView {
+class DetailPhotoView: UIView  {
+    
+  
 
     lazy var collectionImage: UIImageView = {
         let image = UIImageView()
         image.toAutoLayout()
         image.contentMode = .scaleAspectFit
+        
         return image
     }()
 
@@ -34,14 +37,17 @@ class DetailPhotoView: UIView {
         self.setupView()
         self.backgroundColor = .white
         self.alpha = 0
+        
+        
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
-
+    
     private func setupView() {
         self.addSubviews(self.collectionImage, self.closeButton)
+        
 
         NSLayoutConstraint.activate([
             self.collectionImage.centerYAnchor.constraint(equalTo: self.centerYAnchor),
@@ -49,13 +55,15 @@ class DetailPhotoView: UIView {
             self.collectionImage.widthAnchor.constraint(equalToConstant: UIScreen.main.bounds.width),
 
             self.closeButton.topAnchor.constraint(equalTo: self.safeAreaLayoutGuide.topAnchor),
-            self.closeButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -10.0)
+            self.closeButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15.0)
         ])
     }
 
     @objc private func buttonPressed() {
         UIView.animate(withDuration: 0.5) {
             self.alpha = 0
+            
+    
         }
     }
 }
